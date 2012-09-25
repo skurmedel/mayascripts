@@ -66,7 +66,7 @@ proc createSponge(vector $min, vector $max, int $iterations)
 
         if ($old_n != "")
         {
-            polyCombine -ch 0 $old_n $[0];
+            polyCombine -ch 0 $old_n $n[0];
         }
     }
 }
