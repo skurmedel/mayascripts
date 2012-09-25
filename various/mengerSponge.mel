@@ -1,0 +1,74 @@
+// Köttar upp en kub till 3^3 - 7 (20) mindre kuber som fyller samma utrymme.
+//
+// $extents		två vektorer som definerar ett hörn och nästa hörn diagonalt 
+//				till det i world space.
+//
+// returnerar   en platt array med min och max för varje kub, 20 * 2 element stor.
+proc vector[] divideCube(vector $min, vector $max)
+{
+	vector $diagonal = $max - $min;
+	
+	vector $incr = $diagonal * (1.0 / 3.0);
+
+    vector $cubes[40];
+    int $i = 0;
+	for ($y = 0; $y < 3; $y++)
+	{
+		for ($x = 0; $x < 3; $x++)
+		{
+			for ($z = 0; $z < 3; $z++)
+			{
+                $finalPos = $min + <<$x * $incr.x, $y * $incr.y, $z * $incr.z>>;
+
+				if (($y == 0 || $y == 2) && $x == 1 && $z == 1) { /* do nothing */ }
+				else if ($y == 1 && ($x == 1 || $z == 1)) { /* zzz */ }
+				else
+				{
+				    $cubes[$i++] = $finalPos;
+				    $cubes[$i++] = $finalPos + $incr;
+				}
+			}
+		}
+	}
+
+	return $cubes;
+}
+
+// Skapar en Menger-Sponge.
+proc createSponge(vector $min, vector $max, int $iterations) 
+{
+    vector $old[] = { $min, $max };
+    vector $new[];
+    
+    for ($i = 0; $i < $iterations; $i++)
+    {
+        for ($j = 0; $j < size($old); $j+=2)
+        {
+            vector $res[] = divideCube($old[$j], $old[$j + 1]);
+            for ($v in $res)
+            {
+                $new[size($new)] = $v;
+            }
+        }
+        $old = $new;
+        $new = {};
+    }
+    
+    string $old_n = "";
+    for ($i = 0; $i < size($old); $i+=2)
+    {
+        vector $min = $old[$i];
+        vector $diag = $old[$i + 1] - $min;
+        float $s = $diag.x;
+
+        string $n[] = `polyCube -w $s -h $s -d $s`;
+        move ($min.x) ($min.y) ($min.z) $n[0];
+
+        if ($old_n != "")
+        {
+            polyCombine -ch 0 $old_n $[0];
+        }
+    }
+}
+
+createSponge(<<0,0,0>>, <<10,10,10>>, 3);

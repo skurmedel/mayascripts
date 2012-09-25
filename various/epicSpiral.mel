@@ -1,0 +1,88 @@
+// Simon Otter DG11a (2012)
+
+proc vector rotateThree(vector $p, vector $angles)
+{
+	$p = `rot $p <<1, 0, 0>> ($angles.x)`;
+	$p = `rot $p <<0, 1, 0>> ($angles.y)`;
+	$p = `rot $p <<0, 0, 1>> ($angles.z)`;
+	return $p;
+}
+
+// Skapar en episk spiral längs Z-axeln.
+//   
+// 	$c			antalet koner, bestämmer även spiralens sträcka.
+//	$radius		spiralens radie.
+//  $curveN		en kurva spiralen följer.
+//  $revs		hur många varv spiralen skall ha.
+//
+// Exempel:
+//  source "epicSpiral";
+//  epicSpiral(250, 5, "curveShape1", 15);
+global proc epicSpiral(int $c, float $radius, string $curveN, float $revs) 
+{
+	float $fullCircle = 3.142 * 2;
+
+	if ($revs <= 0.0)
+	{
+		print "revs is less or equal to zero, defaulting to 5.0";
+		$revs = 5.0;
+	}
+
+	if ($radius <= 0.0)
+	{
+		print "radius must be bigger than zero.";
+	} 
+	else if (!`objExists $curveN`)
+	{
+		print "No curve with that name exists.";
+	} 
+	else if ($c <= 0)
+	{
+		print "c must be bigger than zero.";
+	}
+	else 
+	{
+		string $n = "";
+		vector $curr = <<0.0, 0.0, 0.0>>;
+		vector $next = <<0.0, 0.0, 0.0>>;
+
+		float $coneSize = 1.0;
+		float $stepSize = 1.0 / $c;
+
+		for ($i = 0.0; $i <= 1.0; $i += $stepSize)	
+		{
+			vector $cvPos = `pointOnCurve -top true -pr $i -p ($curveN)`;
+			// Vi behöver de här för att beräkna axlarna på vår rotationsmatris.
+			// De är alla i worldspace.
+			vector $cvTangent = `pointOnCurve -top true -pr $i -nt ($curveN)`;
+			vector $cvNormal = `pointOnCurve -top true -pr $i -nn ($curveN)`;
+			vector $cvBinormal = `cross $cvTangent $cvNormal`;
+
+			// Bygg vår rotationsmatris.
+			matrix $m[3][3] = <<
+				$cvNormal.x,   $cvNormal.y,   $cvNormal.z;
+				$cvBinormal.x, $cvBinormal.y, $cvBinormal.z;
+				$cvTangent.x,  $cvTangent.y,  $cvTangent.z>>;
+
+			float $angP = $revs * ($i * $fullCircle);
+			
+			// Bygg våran spiral i X/Y-planet, men...
+			vector $offset = <<cos($angP) * $radius, sin($angP) * $radius, 0>>;
+			// rotera helvetet i rätt riktning.
+			$offset = $offset * $m;
+
+			$curr = $next;
+			$next = $cvPos + $offset;
+
+			// Pekar en kon till nästa som skall byggas.
+			$axis = $next - $curr;
+
+			string $n[] = `polyCone -ax ($axis.x) ($axis.y) ($axis.z) -r ($coneSize/2) -h $coneSize`;
+
+			// Flytta till rätt världsposition.
+			move ($curr.x) ($curr.y) ($curr.z) $n[0];
+		}
+
+		print ("Created " + $c + " epic cones!");
+	}
+}
