@@ -8,8 +8,10 @@ pm.polySmooth(name, mth=1, dv=1)
 
 vertices = pm.polyEvaluate(name, v=True)
 
-for vert in range(0, vertices):
-    vtxname = (str(name[0]) + ".vtx[" + str(vert) + "]")
+def make_vtxname(index):
+	return str(name[0]) + ".vtx[" + str(index) + "]"
+
+for vtxname in (make_vtxname(vert) for vert in xrange(0, vertices)):
     p = pm.xform(vtxname, q=True, t=True);
     p = dt.Vector(p).normal()
     
