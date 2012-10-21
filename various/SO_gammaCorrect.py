@@ -1,10 +1,45 @@
 import pymel.core as pm
 import pymel.core.datatypes as dt
 
-def command():
-	pass
+SRGB=2.2
 
-def attach_form(lay, control, edge_list=[], offset=0):
+def correct(plug, gamma=SRGB):
+	"""Corrects plug for gamma. Note that the gamma entered
+	is the one to correct for, so the actual value is 1/SRGB,
+	the inverse of the gamma parameter.
+
+	plug must point to a float3 attribute. If the plug is already
+	connected, this command will insert the node as an intermediary.
+	"""
+	
+	attr = pm.PyNode(plug)
+	node = attr.plugNode()
+
+	# Make sure it's not zero or something stupid.
+	gammaVal = 1 / float(gamma)
+
+	if not attr:
+		raise ValueError("No %s attribute found on %s." % (attr, node))
+
+	if attr.type() != "float3":
+		raise ValueError("%s does not point to a float3 attribute." % plug)
+
+	gcNode = pm.createNode("gammaCorrect")
+	gcNode.gamma.set([gammaVal] * 3)
+
+	firstInput = get_connection(plug)
+	if firstInput:
+		print(firstInput)
+		firstInput >> gcNode.value
+		gcNode.outValue >> attr
+	else:
+		value = attr.get()
+		gcNode.value.set(value)
+
+		gcNode.outValue >> attr
+
+
+def _attach_form(lay, control, edge_list=[], offset=0):
 	for e in edge_list:
 		lay.attachForm(control, e, offset)
 
@@ -27,13 +62,17 @@ def list_attributes(node, typ="*"):
 
 	return results
 
-# Finds the first input for a plug, or returns None.
+
 def get_connection(plug):
+	"""Finds the first input for a plug, or returns None."""
+
 	attr = pm.PyNode(plug)
-	for i in attr.inputs():
+	for i in attr.inputs(p=True):
 		return i
 
 def prompt_ui():
+	"""Displays the Gamma Correction UI."""
+
 	win = pm.window(title="Gamma Correct Attribute", width=200)
 	
 	layout = pm.formLayout(parent=win)
@@ -44,27 +83,27 @@ def prompt_ui():
 	
 	ok_button = pm.button(label="Insert", enable=False)
 	
-	attach_form(layout, shader_options, ["top", "left", "right"], 5)
+	_attach_form(layout, shader_options, ["top", "left", "right"], 5)
 
-	attach_form(layout, attribute_options, ["left", "right"], 5)
+	_attach_form(layout, attribute_options, ["left", "right"], 5)
 	layout.attachControl(attribute_options, "top", 5, shader_options)
 
 	gamma_slider = pm.floatSlider(min=0.1, max=3.0, step=0.1, value=2.2)
 	gamma_lbl = pm.text(label="2.2")
 
-	attach_form(layout, gamma_slider, ["top", "left"], 5) 
+	_attach_form(layout, gamma_slider, ["top", "left"], 5) 
 	layout.attachControl(gamma_slider, "top", 5, attribute_options)
 	layout.attachControl(gamma_slider, "right", 5, gamma_lbl)
 
-	attach_form(layout, gamma_lbl, ["right"], 5)
+	_attach_form(layout, gamma_lbl, ["right"], 5)
 	layout.attachControl(gamma_lbl, "top", 5, attribute_options)
 
 	info_lbl = pm.text(label="Select a node...")
 
-	attach_form(layout, info_lbl, ["left", "right"], 5)
+	_attach_form(layout, info_lbl, ["left", "right"], 5)
 	layout.attachControl(info_lbl, "top", 5, gamma_slider)
 
-	attach_form(layout, ok_button, ["bottom", "left", "right"], 5)
+	_attach_form(layout, ok_button, ["bottom", "left", "right"], 5)
 	layout.attachControl(ok_button, "top", 5, info_lbl)
 
 	# CALLBACKS.
@@ -100,7 +139,7 @@ def prompt_ui():
 	gamma_slider.dragCommand(_gamma_on_change)
 
 	def _on_insert(*args):
-		command()
+		correct("%s.%s" % (shader_options.getValue(), attribute_options.getValue()), gamma=gamma_slider.getValue())
 		win.delete()
 
 	ok_button.setCommand(_on_insert)
