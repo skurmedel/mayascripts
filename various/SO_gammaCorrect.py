@@ -20,6 +20,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""This script allows the user to gamma correct various shaders; really any attribute.
+
+Usage is simple, call SO_gammaCorrect.prompt_ui() to display the GUI.
+
+You can also access the correction logic with a call to SO_gammaCorrect.correct(plug, gamma).
+"""
 
 import pymel.core as pm
 import pymel.core.datatypes as dt
@@ -61,6 +67,10 @@ def correct(plug, gamma=SRGB):
 
 		gcNode.outValue >> attr
 
+
+##############################################################
+# GUI														 #
+##############################################################
 
 def _attach_form(lay, control, edge_list=[], offset=0):
 	for e in edge_list:
@@ -170,4 +180,6 @@ def prompt_ui():
 	_refresh()
 	win.show()
 
-prompt_ui()
+# Run the GUI on invokation.
+if __name__ == "__main__":
+	prompt_ui()
