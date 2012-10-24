@@ -178,7 +178,6 @@ def prompt_ui():
 	def _on_insert(*args):
 		plug = "%s.%s" % (shader_options.getValue(), attribute_options.getValue())
 		correct(plug, gamma=gamma_slider.getValue())
-		win.delete()
 
 	ok_button.setCommand(_on_insert)
 
