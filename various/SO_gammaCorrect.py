@@ -114,12 +114,16 @@ def prompt_ui():
 	layout = pm.formLayout(parent=win)
 	
 	shader_options = pm.optionMenu(label="Shader")
+
+	refresh_button = pm.button(label="R", enable=True)
 	
 	attribute_options = pm.optionMenu(label="Attribute")
 	
 	ok_button = pm.button(label="Insert", enable=False)
 	
-	_attach_form(layout, shader_options, ["top", "left", "right"], 5)
+	_attach_form(layout, shader_options, ["top", "left"], 5)
+	_attach_form(layout, refresh_button, ["top", "right"], 5)
+	layout.attachControl(shader_options, "right", 5, refresh_button)
 
 	_attach_form(layout, attribute_options, ["left", "right"], 5)
 	layout.attachControl(attribute_options, "top", 5, shader_options)
@@ -144,10 +148,12 @@ def prompt_ui():
 
 	# CALLBACKS.
 
-	def _refresh():		
+	def _refresh(*args):		
 		shader_options.clear()
 		for m in list_materials():
 			pm.uitypes.MenuItem(label=m, p=shader_options)
+
+	refresh_button.setCommand(_refresh)
 
 	def _on_shader_changed(*args):
 		if len(args) == 0:
