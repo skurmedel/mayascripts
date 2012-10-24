@@ -20,11 +20,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-"""This script allows the user to gamma correct various shaders; really any attribute.
+"""
+This script allows the user to gamma correct various shaders; really any 
+attribute.
 
 Usage is simple, call SO_gammaCorrect.prompt_ui() to display the GUI.
 
-You can also access the correction logic with a call to SO_gammaCorrect.correct(plug, gamma).
+You can also access the correction logic with a call to 
+SO_gammaCorrect.correct(plug, gamma).
 """
 
 import pymel.core as pm
@@ -68,9 +71,9 @@ def correct(plug, gamma=SRGB):
 		gcNode.outValue >> attr
 
 
-##############################################################
-# GUI														 #
-##############################################################
+#####################################################################################
+# GUI                                                                               #
+#####################################################################################
 
 def _attach_form(lay, control, edge_list=[], offset=0):
 	for e in edge_list:
@@ -162,7 +165,8 @@ def prompt_ui():
 	def _on_attribute_changed(*args):
 		node = shader_options.getValue()
 
-		info_lbl.setLabel("%s's input is: %s" % (args[0], get_connection(node + "." + args[0])))
+		info_lbl.setLabel(
+			"%s's input is: %s" % (args[0], get_connection(node + "." + args[0])))
 
 	attribute_options.changeCommand(_on_attribute_changed)
 
@@ -172,7 +176,8 @@ def prompt_ui():
 	gamma_slider.dragCommand(_gamma_on_change)
 
 	def _on_insert(*args):
-		correct("%s.%s" % (shader_options.getValue(), attribute_options.getValue()), gamma=gamma_slider.getValue())
+		plug = "%s.%s" % (shader_options.getValue(), attribute_options.getValue())
+		correct(plug, gamma=gamma_slider.getValue())
 		win.delete()
 
 	ok_button.setCommand(_on_insert)
