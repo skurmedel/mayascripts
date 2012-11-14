@@ -12,7 +12,7 @@ def _getMeshNode(name):
         raise ValueError("name must point to a polygon mesh.")
     return n
 
-def attachInstance(source, target, p):
+def attach(source, target, p):
     """Instances source, and attaches it to mesh target as close
     as it can on the surface to point p.
     """
@@ -47,7 +47,7 @@ def attachToVertices(source, targetVertices=None):
 
         target = pm.PyNode(v).node()
 
-        attachInstance(source, target, p)
+        attach(source, target, p)
 
 def raycastPosition():
     return pm.autoPlace(useMouse=True)
