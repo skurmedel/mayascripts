@@ -38,7 +38,7 @@ For example:
 
 import pymel.core as pm
 
-def insertEdgeLoop(weight=0.5, sma=30):
+def insertEdgeLoop(weight=0.5, sma=3, splitType=1, div=1):
 	"""Mimics Insert Edge Loop in Maya, as it is 
 	used in the UI, and not how it works in MEL.
 	"""
@@ -48,4 +48,4 @@ def insertEdgeLoop(weight=0.5, sma=30):
 		e = pm.PyNode(e)
 		pm.select(e, r=True)
 		pm.polySelect(er=e.currentItemIndex())
-		pm.polySplitRing(weight=weight, fixQuads=1, splitType=1, sma=sma)
+		pm.polySplitRing(weight=weight, fixQuads=1, splitType=splitType, sma=sma, div=div)
