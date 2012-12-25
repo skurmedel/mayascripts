@@ -115,6 +115,9 @@ class Vector(object):
         """
         return math.sqrt((self.x ** 2) + (self.y ** 2) + (self.z ** 2))
 
+    def __repr__(self):
+        return "Vector(%f, %f, %f)" % (self.x, self.y, self.z)
+
 class VectorsTest(TestCase):
     def test_avg(self):
         vectors = [Vector(x, y, z) for x in (0., 1.) for y in (0., 1.) for z in (0., 1.)]
