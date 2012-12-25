@@ -29,6 +29,9 @@ class Agent(object):
     def __init__(self, id, position, velocity):
         """
         Initialize a new Agent.
+
+        position and velocity should be some kind of Vector type
+        compatible with the vector-module.
         """
         self._id = id
         self._position = position
