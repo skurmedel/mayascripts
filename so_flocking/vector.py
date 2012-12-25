@@ -35,10 +35,13 @@ The operations themselves are just the corresponding vector operations,
 addition, subtraction, division with a scalar, multiplication with a scalar.
 """
 import __builtin__
+from unittest import TestCase
+import math
+import itertools
 
+# Gets the magnitude/length of a vector. Set this to a custom method if __len__ is not part
+# of the vector interface.
 mag = __builtin__.len
-mag.__doc__ = "Gets the magnitude/length of a vector. Set this to a custom method if __len__ is not part" \
-              "of the vector interface."
 
 def avg(vectors):
     """
@@ -57,3 +60,73 @@ def inside(v, center, radius):
     line = center - v
 
     return mag(line) <= radius
+
+class Vector(object):
+    """
+    A simple 3D Vector type.
+    """
+
+    def __init__(self, *args):
+        x, y, z = args
+
+        self.x = x
+        self.y = y
+        self.z = z
+
+    def __add__(self, other):
+        """
+        Vector addition.
+
+        :rtype : Vector
+        :type other: Vector
+        """
+        return Vector(self.x + other.x, self.y + other.y, self.z + other.z)
+
+    def __sub__(self, other):
+        """
+        Vector subtraction.
+
+        :rtype : Vector
+        :type other: Vector
+        """
+        return Vector(self.x - other.x, self.y - other.y, self.z - other.z)
+
+    def __div__(self, other):
+        """
+        Division by scalar.
+
+        :rtype : float
+        :type other: float
+        """
+        return Vector(self.x / other, self.y / other, self.z / other)
+
+    def __mul__(self, other):
+        """
+        Multiplication by scalar.
+
+        :rtype : float
+        :type other: float
+        """
+        return Vector(self.x * other, self.y * other, self.z * other)
+
+    def __len__(self):
+        """
+        Magnitude of the vector.
+        """
+        return math.sqrt((self.x ** 2) + (self.y ** 2) + (self.z ** 2))
+
+class VectorsTest(TestCase):
+    def test_avg(self):
+        vectors = [Vector(x, y, z) for x in (0., 1.) for y in (0., 1.) for z in (0., 1.)]
+
+        res = avg(vectors)
+        self.assertAlmostEqual(0.5, res.x, 2)
+        self.assertAlmostEqual(0.5, res.y, 2)
+        self.assertAlmostEqual(0.5, res.z, 2)
+
+    def test_inside(self):
+        p = Vector(1, 0, 0)
+        radius = 0.5
+        v = Vector(0.25, 0, 0)
+
+        self.assertTrue(inside(v, p, radius))
