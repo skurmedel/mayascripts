@@ -37,7 +37,6 @@ addition, subtraction, division with a scalar, multiplication with a scalar.
 import __builtin__
 from unittest import TestCase
 import math
-import itertools
 
 # Gets the magnitude/length of a vector. Set this to a custom method if __len__ is not part
 # of the vector interface.
