@@ -61,6 +61,33 @@ def inside(v, center, radius):
 
     return mag(line) <= radius
 
+def inside2(p1, r1, p2, r2):
+    """
+    This finds out if two points are in each others "radius",
+    that is if one of the spheres encompasses the center of
+    the other and the reverse.
+
+    Returns:
+
+        0   if p1 is not inside the sphere (p2, r2)
+            and p2 is not inside the sphere (p1, r2)
+        1   p1 is inside the sphere (p2, r2)
+        2   p2 is inside the sphere (p1, r1)
+        3   both conditions are true
+
+    The result can easily be used as a bitmask.
+    """
+    line = p1 - p2
+    m = mag(line)
+
+    res = 0
+    if m <= r2:
+        res |= 1
+    if m <= r1:
+        res |= 2
+
+    return res
+
 class Vector(object):
     """
     A simple 3D Vector type.
@@ -133,3 +160,12 @@ class VectorsTest(TestCase):
         v = Vector(0.25, 0, 0)
 
         self.assertTrue(inside(v, p, radius))
+
+    def test_inside2(self):
+        p1 = Vector(1, 0, 0)
+        r1 = 0.25
+        p2 = Vector(0.5, 0.5, 0.5)
+        r2 = 0.5
+
+        res = inside2(p1, r1, p2, r2)
+        self.assertEqual(res, 2)
