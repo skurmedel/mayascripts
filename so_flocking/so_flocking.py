@@ -10,7 +10,9 @@ def unflattenFloat3Array(arr):
 	"""Unflatten a float3 array representing vectors to a list
 	of PyMEL vectors."""
 
-	x, y, z = itertools.islice(arr, 0, None, 3), itertools.islice(arr, 1, None, 3), itertools.islice(arr, 2, None, 3)
+	x, y, z = itertools.islice(arr, 0, None, 3), \
+              itertools.islice(arr, 1, None, 3), \
+              itertools.islice(arr, 2, None, 3)
 	vzip = itertools.izip(x, y, z)
 
 	return [Vector(*x) for x in vzip]
@@ -21,7 +23,7 @@ def getParticleIds(shapeName):
 	Only the active particles are returned, dead particles are
 	not in the result set.
 
-	shapeName is either the name of the shape, or its tranform."""
+	shapeName is either the name of the shape, or its transform."""
 
 	return effects.getParticleAttr(shapeName, at="particleId", array=True)
 
@@ -41,7 +43,7 @@ def inFov(pos, viewDir, pos2, fov=math.pi):
 	line = pos2 - pos
 
 	d = line.dot(viewDir)
-	# Quickly eliminate perpendiculars and orthogonals:
+	# Quickly eliminate perpendiculars and orthogonal:
 	if d == 1:
 		return True
 	if fov >= PIBY2 and d == 0:
