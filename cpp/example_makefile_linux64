@@ -9,10 +9,10 @@ else
 	MAYA_PATH += -I/usr/autodesk/maya2012-x64
 endif
 
-NAME=exampleplugin
+NAME=mengercmd
 BIN=bin
-SOURCES=$(wildcard src/**/*.c src/*.c)
-OBJECTS=$(SOURCES:%.c=%.o)
+SOURCES=$(wildcard src/**/*.cpp src/*.cpp)
+OBJECTS=$(SOURCES:%.cpp=%.o)
 LIB=$(BIN)/$(NAME)
 
 CC=g++ $(CFLAGS) 
@@ -33,7 +33,7 @@ all: $(SOURCES) $(LIB)
 $(LIB): $(OBJECTS) setup
 	$(CC) --shared $(CFLAGS) $(OBJECTS) -o $@ $(LFLAGS)
 
-%.o: %.c
+%.o: %.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 setup:
