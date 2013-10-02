@@ -53,10 +53,19 @@ class SoMuscle(object):
         pm.pointConstraint(sloctrans, eloctrans, mloctrans, maintainOffset=False)
         pm.orientConstraint(sloctrans, eloctrans, mloctrans)
 
-        grp = pm.group(empty=True, name=name)
+        maingrp = pm.group(empty=True, name=name)
+        maingrp.translate.lock(), maingrp.rotate.lock(), maingrp.scale.lock()
+
+        grp = pm.group(empty=True, name="moveGroup")
+        grp.setParent(maingrp)
+
         sloctrans.setParent(grp), sloctrans.rename("muscleStart")
         eloctrans.setParent(grp), eloctrans.rename("muscleEnd")
         mloctrans.setParent(grp), mloctrans.rename("muscleMid")
+
+        # Make the locators smaller in the UI.
+        for loctrans in [sloctrans, mloctrans, eloctrans]:
+            loctrans.getShape().localScale.set(0.25, 0.25, 0.25)
 
         startdef = ("start", sloctrans) + getrottrans(sloctrans)
         enddef   = ("end", eloctrans) + getrottrans(eloctrans)
@@ -74,18 +83,18 @@ class SoMuscle(object):
             transform.setTranslation(pos, space="world")
 
         loftrans, _ = pm.loft(*circles)
-        loftrans.setParent(grp)
+        loftrans.setParent(maingrp) # Put in maingrp, so we avoid double transforms.
         loftrans.rename("muscleSurface")
 
         midcircle = circles[1]
         def addfloat3(obj, attrname):
             obj.addAttr(attrname, at="float3")
             for suffix in ["X", "Y", "Z"]:
-                obj.addAttr(attrname + suffix, at="float", parent=attrname, hidden=False)
+                obj.addAttr(attrname + suffix, at="float", parent=attrname, k=True)
 
         addfloat3(midcircle, "startPos")
         addfloat3(midcircle, "endPos")
-        grp.addAttr("bulgeFactor", at="float", defaultValue=1.0, minValue=0.01, maxValue=1000, hidden=False)
+        maingrp.addAttr("bulgeFactor", at="float", defaultValue=1.0, minValue=0.01, maxValue=1000, k=True)
 
         sloctrans.translate >> midcircle.startPos
         eloctrans.translate >> midcircle.endPos
@@ -100,6 +109,6 @@ class SoMuscle(object):
             float $f = {1}.bulgeFactor / $len;
             scaleX = $f;
             scaleY = $f;
-        """.format(midcircle.name(), grp.name())
-        print(expression)
+        """.format(midcircle.name(), maingrp.name())
+
         pm.expression(o=midcircle, s=expression)
