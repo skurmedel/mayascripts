@@ -65,6 +65,7 @@ class SoMuscle(object):
         circles = []
         for name, parent, rot, pos in [startdef, middef, enddef]:
             transform, _ = pm.circle(radius=0.1)
+            pm.delete(transform, ch=True)
             circles.append(transform)
             transform.setParent(parent)
             # Change name AFTER we've parented them, so we can avoid naming collisions.
@@ -88,3 +89,17 @@ class SoMuscle(object):
 
         sloctrans.translate >> midcircle.startPos
         eloctrans.translate >> midcircle.endPos
+
+        # Some horrible MEL to preserve volume.
+        expression = """
+            vector $a = <<{0}.startPosX, {0}.startPosY, {0}.startPosZ>>;
+            vector $b = <<{0}.endPosX,   {0}.endPosY,   {0}.endPosZ>>;
+
+            float $len = `mag ($b - $a)`;
+            $len += 0.0000001;
+            float $f = {1}.bulgeFactor / $len;
+            scaleX = $f;
+            scaleY = $f;
+        """.format(midcircle.name(), grp.name())
+        print(expression)
+        pm.expression(o=midcircle, s=expression)
