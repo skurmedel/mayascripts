@@ -20,6 +20,19 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""
+If in MEL:
+
+	python("import SO_quickSel");
+	python("SO_quickSel.show_ui()");
+
+In Python:
+
+	import SO_quickSel
+	SO_quickSel.show_ui()
+
+"""
+
 import pymel.core as pm
 
 DEFAULT_SET_NAME 	= "QuickSelSet"
