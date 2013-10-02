@@ -2,8 +2,16 @@ import pymel.core as pm
 import operator
 
 class SoMuscle(object):
-    def __init__(self, start, end, name="soMuscle"):
-        """Defines a new muscle positioned between start and end.
+    def __init__(self, grpname):
+        """Creates a new SoMuscle object representing the muscle hierarchy specified in grpname.
+
+        grpname must point to a valid Maya group with the requisite structure.
+        """
+        raise NotImplemented("Coming soon.")
+
+    @classmethod
+    def make(cls, start, end, name="soMuscle"):
+        """Creates a new muscle positioned between start and end.
 
         start & end must both be locators.
 
@@ -32,26 +40,51 @@ class SoMuscle(object):
             else:
                     raise TypeError("Expected a locator or its transform node in start")
 
-        snode, strans = findshape(snode)
-        enode, etrans = findshape(enode)
+        def getrottrans(trans):
+            return trans.getRotation(space="world"), trans.getTranslation(space="world")
+
+        # Find locator shapes, mostly to make sure they are locators.
+        # Their transforms are needed though.
+        snode, sloctrans = findshape(snode)
+        enode, eloctrans = findshape(enode)
+
+        mloctrans = pm.spaceLocator()
+        # Point-constrain and orient constrain to other locators.
+        pm.pointConstraint(sloctrans, eloctrans, mloctrans, maintainOffset=False)
+        pm.orientConstraint(sloctrans, eloctrans, mloctrans)
 
         grp = pm.group(empty=True, name=name)
-        strans.setParent(grp)
-        etrans.setParent(grp)
+        sloctrans.setParent(grp), sloctrans.rename("muscleStart")
+        eloctrans.setParent(grp), eloctrans.rename("muscleEnd")
+        mloctrans.setParent(grp), mloctrans.rename("muscleMid")
 
-        # Create start and end circle.
-        positions = [x.getTranslation(space="world") for x in [strans, etrans]]
-        rotations = [x.getRotation(space="world") for x in [strans, etrans]]
-        positions.append(positions[0] + (positions[1] - positions[0]) * 0.5)
-        rotations.append(rotations[1])
+        startdef = ("start", sloctrans) + getrottrans(sloctrans)
+        enddef   = ("end", eloctrans) + getrottrans(eloctrans)
+        middef   = ("mid", mloctrans) + getrottrans(mloctrans)
+
         circles = []
-        for name, p, quat in zip(["start", "end", "mid"], positions, rotations):
-            trans, makecircle = pm.circle(name=name, radius=0.25)
-            trans.setTranslation(p)
-            trans.setRotation(quat)
-            circles.append(trans)
+        for name, parent, rot, pos in [startdef, middef, enddef]:
+            transform, _ = pm.circle(radius=0.1)
+            circles.append(transform)
+            transform.setParent(parent)
+            # Change name AFTER we've parented them, so we can avoid naming collisions.
+            transform.rename(name)
+            transform.setRotation(rot)
+            transform.setTranslation(pos, space="world")
 
-        for trans, parent in zip(circles, [strans, etrans, grp]):
-            trans.setParent(parent)
+        loftrans, _ = pm.loft(*circles)
+        loftrans.setParent(grp)
+        loftrans.rename("muscleSurface")
 
-        pm.loft(*circles)
+        midcircle = circles[1]
+        def addfloat3(obj, attrname):
+            obj.addAttr(attrname, at="float3")
+            for suffix in ["X", "Y", "Z"]:
+                obj.addAttr(attrname + suffix, at="float", parent=attrname, hidden=False)
+
+        addfloat3(midcircle, "startPos")
+        addfloat3(midcircle, "endPos")
+        grp.addAttr("bulgeFactor", at="float", defaultValue=1.0, minValue=0.01, maxValue=1000, hidden=False)
+
+        sloctrans.translate >> midcircle.startPos
+        eloctrans.translate >> midcircle.endPos
